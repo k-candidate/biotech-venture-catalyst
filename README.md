@@ -1,5 +1,10 @@
 # Biotech Venture Catalyst: Predicting Phase 1 Trial Outcomes for Venture Capital Due Diligence
 
+
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://biotech-venture-catalyst.streamlit.app/)
+
+**Live Interactive Dashboard:** https://biotech-venture-catalyst.streamlit.app/
+
 ***
 
 ## Problem Description and Context
