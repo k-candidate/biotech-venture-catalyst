@@ -5,6 +5,8 @@
 
 **Live Interactive Dashboard:** https://biotech-venture-catalyst.streamlit.app/
 
+**Optional Client-Side Browser Demo (ONNX and WASM):** https://k-candidate.github.io/biotech-venture-catalyst/
+
 ***
 
 ## Problem Description and Context
@@ -211,3 +213,13 @@ In institutional biotech due diligence, the **Probability of Success (PoS)** gen
 $$\text{rNPV} = \left( \frac{\text{Expected Market Value after Approval}}{(1 + \text{Discount Rate})^{\text{Years to Launch}}} \times \text{PoS} \right) - \text{Trial Operational Cost}$$
 
 By automating the PoS estimation, investment teams can test asset valuations before committing capital to Phase 1 clinical operations.
+
+***
+
+## Client-Side Browser Inference (ONNX + WebAssembly)
+
+In addition to the core FastAPI microservice and Streamlit dashboard, this repository includes a zero-backend static web page in `docs/` that runs model inference directly inside the user's browser:
+
+* **Model Export (`export_onnx.py`):** Converts the trained `RandomForestClassifier` into `docs/model.onnx` and exports the `DictVectorizer` feature vocabulary to `docs/metadata.json`.
+* **In-Browser Execution (`docs/index.html`):** Uses **ONNX Runtime Web (WASM)** to perform feature extraction and inference locally on the client device without sending data to a server.
+* **Live GitHub Pages Deployment:** https://k-candidate.github.io/biotech-venture-catalyst/
