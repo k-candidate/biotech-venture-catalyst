@@ -1,0 +1,32 @@
+{
+  "feature_names": [
+    "criteria_word_count",
+    "duration_days",
+    "exclusion_keyword_count",
+    "num_conditions",
+    "primary_disease_chapter=A",
+    "primary_disease_chapter=B",
+    "primary_disease_chapter=C",
+    "primary_disease_chapter=D",
+    "primary_disease_chapter=E",
+    "primary_disease_chapter=F",
+    "primary_disease_chapter=G",
+    "primary_disease_chapter=H",
+    "primary_disease_chapter=I",
+    "primary_disease_chapter=J",
+    "primary_disease_chapter=K",
+    "primary_disease_chapter=L",
+    "primary_disease_chapter=M",
+    "primary_disease_chapter=N",
+    "primary_disease_chapter=O",
+    "primary_disease_chapter=P",
+    "primary_disease_chapter=Q",
+    "primary_disease_chapter=R",
+    "primary_disease_chapter=S",
+    "primary_disease_chapter=T",
+    "primary_disease_chapter=Y",
+    "primary_disease_chapter=Z",
+    "start_month",
+    "start_year"
+  ]
+}

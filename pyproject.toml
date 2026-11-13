@@ -3,7 +3,7 @@ name = "biotech-venture-catalyst"
 version = "0.1.0"
 description = "Biotech Venture Catalyst: Predicting Phase 1 Trial Outcomes for Venture Capital Due Diligence"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.13"
 dependencies = [
     "fastapi>=0.162.4",
     "numpy>=1.26.4",
@@ -19,7 +19,9 @@ dependencies = [
 dev = [
     "jupyterlab>=4.6.6",
     "matplotlib>=3.11.2",
+    "ml-dtypes>=0.5.0",
     "pytdc>=1.1.15",
     "seaborn>=0.13.2",
     "setuptools<=80.10.2",
+    "skl2onnx>=1.20.0",
 ]

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Biotech Venture Catalyst — Client-Side WASM Inference</title>
+  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.31.1/dist/ort.min.js"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; color: #1f2937; line-height: 1.5; }
+    h1 { margin-bottom: 0.25rem; }
+    .subtitle { color: #4b5563; margin-top: 0; margin-bottom: 1.5rem; }
+    .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; background: #f9fafb; margin-bottom: 1.5rem; }
+    label { display: block; font-weight: 600; margin-top: 1rem; margin-bottom: 0.25rem; }
+    input, textarea { width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-family: inherit; box-sizing: border-box; }
+    button { margin-top: 1.25rem; background: #2563eb; color: white; border: none; padding: 0.65rem 1.25rem; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+    button:disabled { background: #9ca3af; cursor: not-allowed; }
+    .result { font-size: 1.5rem; font-weight: 700; color: #111827; }
+    pre { background: #111827; color: #f3f4f6; padding: 1rem; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; }
+    .badge { display: inline-block; background: #dbeafe; color: #1e40af; font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>🧬 Biotech Venture Catalyst</h1>
+  <p class="subtitle">Client-side Phase 1 Clinical Trial PoS Prediction via <strong>ONNX Runtime Web (WASM)</strong> <span class="badge">100% In-Browser</span></p>
+
+  <div class="card">
+    <label for="start_date">Trial Start Date</label>
+    <input id="start_date" type="text" value="March 1996" />
+
+    <label for="complete_date">Expected Completion Date</label>
+    <input id="complete_date" type="text" value="July 2000" />
+
+    <label for="icdcodes">Target Indication ICD-10 Codes</label>
+    <input id="icdcodes" type="text" value="C96.A__C46.9" />
+
+    <label for="eligibility_criteria">Eligibility Criteria</label>
+    <textarea id="eligibility_criteria" rows="4">Patient Characteristics: Age 13 and over. Performance status: stable. No uncontrolled systemic infection. Effective contraception required.</textarea>
+
+    <button id="predict_btn" disabled>Loading WASM Model...</button>
+  </div>
+
+  <div class="card" id="output_card" style="display:none;">
+    <div>Predicted Probability of Success (PoS):</div>
+    <div class="result" id="pos_output">--%</div>
+    <p style="font-size: 0.85rem; color: #4b5563;">Executed locally in your browser. Zero data sent to any server.</p>
+    <details>
+      <summary style="cursor:pointer; font-weight:600;">View Derived Features</summary>
+      <pre id="features_json"></pre>
+    </details>
+  </div>
+
+  <script>
+    let session = null;
+    let featureNames = [];
+
+    async function init() {
+      const btn = document.getElementById("predict_btn");
+      try {
+        // Point WASM loader explicitly to the CDN dist/ folder
+        ort.env.wasm.wasmPaths = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.31.1/dist/";
+
+        const metaRes = await fetch("metadata.json");
+        if (!metaRes.ok) throw new Error(`Failed to load metadata.json (${metaRes.status})`);
+        const meta = await metaRes.json();
+        featureNames = meta.feature_names;
+
+        session = await ort.InferenceSession.create("model.onnx", { executionProviders: ["wasm"] });
+        btn.disabled = false;
+        btn.textContent = "Calculate Probability of Success";
+      } catch (err) {
+        console.error("ONNX initialization error:", err);
+        btn.textContent = `Error: ${err.message}`;
+      }
+    }
+
+
+    function parseDate(str) {
+      if (!str || !str.trim()) return null;
+      const clean = str.trim();
+
+      // 1. Handle "Month Year" (e.g., "March 1996" or "Mar 1996") -> 1st of month in UTC
+      const months = {
+        january: 0, jan: 0, february: 1, feb: 1, march: 2, mar: 2,
+        april: 3, apr: 3, may: 4, june: 5, jun: 5,
+        july: 6, jul: 6, august: 7, aug: 7, september: 8, sep: 8, sept: 8,
+        october: 9, oct: 9, november: 10, nov: 10, december: 11, dec: 11
+      };
+      const monthYearMatch = clean.match(/^([a-zA-Z]+)\s+(\d{4})$/);
+      if (monthYearMatch) {
+        const m = months[monthYearMatch[1].toLowerCase()];
+        const y = parseInt(monthYearMatch[2], 10);
+        if (m !== undefined) {
+          return new Date(Date.UTC(y, m, 1));
+        }
+      }
+
+      // 2. Fallback for standard full date formats (e.g., "1996-03-01", "March 1, 1996")
+      const d = new Date(clean);
+      if (isNaN(d.getTime())) return null;
+      return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    }
+
+
+    function extractFeatures(startStr, completeStr, icdStr, criteriaStr) {
+      const startDt = parseDate(startStr);
+      const completeDt = parseDate(completeStr);
+
+      const start_year = startDt ? startDt.getUTCFullYear() : -1;
+      const start_month = startDt ? startDt.getUTCMonth() + 1 : -1;
+      const duration_days = (startDt && completeDt)
+        ? Math.floor((completeDt - startDt) / (1000 * 60 * 60 * 24))
+        : -1;
+
+      const cleanIcd = (icdStr || "").trim();
+      const num_conditions = cleanIcd ? cleanIcd.split("__").length : 0;
+      const primary_disease_chapter = cleanIcd.length > 0 ? cleanIcd.charAt(0) : "Unknown";
+
+      const text = criteriaStr || "";
+      const words = text.trim().split(/\s+/).filter(Boolean);
+      const criteria_word_count = words.length;
+      const matches = text.match(/\b(exclude|exclusion|no history|prior concurrent)\b/gi);
+      const exclusion_keyword_count = matches ? matches.length : 0;
+
+      return {
+        start_year,
+        start_month,
+        duration_days,
+        num_conditions,
+        primary_disease_chapter,
+        criteria_word_count,
+        exclusion_keyword_count
+      };
+    }
+
+    function vectorize(record) {
+      const vec = new Float32Array(featureNames.length);
+      for (let i = 0; i < featureNames.length; i++) {
+        const fname = featureNames[i];
+        if (fname.startsWith("primary_disease_chapter=")) {
+          const val = fname.split("=")[1];
+          vec[i] = (record.primary_disease_chapter === val) ? 1.0 : 0.0;
+        } else if (fname in record) {
+          vec[i] = Number(record[fname]);
+        }
+      }
+      return vec;
+    }
+
+    document.getElementById("predict_btn").addEventListener("click", async () => {
+      const record = extractFeatures(
+        document.getElementById("start_date").value,
+        document.getElementById("complete_date").value,
+        document.getElementById("icdcodes").value,
+        document.getElementById("eligibility_criteria").value
+      );
+
+      const inputVec = vectorize(record);
+      const tensor = new ort.Tensor("float32", inputVec, [1, featureNames.length]);
+      const results = await session.run({ float_input: tensor });
+
+      const probs = results.probabilities.data;
+      const posProb = probs[1];
+
+      document.getElementById("pos_output").textContent = `${(posProb * 100).toFixed(2)}%`;
+      document.getElementById("features_json").textContent = JSON.stringify(record, null, 2);
+      document.getElementById("output_card").style.display = "block";
+    });
+
+    init();
+  </script>
+</body>
+</html>
