@@ -9,7 +9,7 @@
 
 **End-to-End Video Walkthrough:**
 
-[![Biotech Venture Catalyst Demo](https://youtu.be/qqN5eXiKUrU)](https://youtu.be/qqN5eXiKUrU)
+[![Biotech Venture Catalyst Demo](https://img.youtube.com/vi/qqN5eXiKUrU/hqdefault.jpg)](https://youtu.be/qqN5eXiKUrU)
 
 ***
 
