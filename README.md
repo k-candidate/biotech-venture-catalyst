@@ -7,6 +7,10 @@
 
 **Optional Client-Side Browser Demo (ONNX and WASM):** https://k-candidate.github.io/biotech-venture-catalyst/
 
+**End-to-End Video Walkthrough:**
+
+[![Biotech Venture Catalyst Demo](https://youtu.be/qqN5eXiKUrU)](https://youtu.be/qqN5eXiKUrU)
+
 ***
 
 ## Problem Description and Context
